@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.files       = ["lib/roaring_bitmap.rb"]
 
   s.add_development_dependency "rspec", "~> 3.9"
-  s.add_development_dependency "rake", "~> 11.2"
+  s.add_development_dependency "rake", "~> 12.3"
   s.add_development_dependency "rake-compiler", "~> 1.1"
   s.add_development_dependency "benchmark-ips"
 end
