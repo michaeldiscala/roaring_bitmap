@@ -1,0 +1,3 @@
+[submodule "ext/roaring_bitmap_ext/libcroaring"]
+	path = ext/roaring_bitmap_ext/libcroaring
+	url = https://github.com/lemire/CRoaringUnityBuild.git
