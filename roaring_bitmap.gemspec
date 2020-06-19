@@ -7,9 +7,10 @@ Gem::Specification.new do |s|
   s.authors     = ["Panorama Education"]
   s.email       = "mdiscala@panoramaed.com"
   s.files       = ["lib/roaring_bitmap.rb"]
+  s.extensions = %w[ext/roaring_bitmap_ext/extconf.rb]
 
   s.add_development_dependency "rspec", "~> 3.9"
-  s.add_development_dependency "rake", "~> 11.2"
+  s.add_development_dependency "rake", "~> 12.3"
   s.add_development_dependency "rake-compiler", "~> 1.1"
   s.add_development_dependency "benchmark-ips"
 end
