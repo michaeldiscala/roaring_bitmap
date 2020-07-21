@@ -55,4 +55,58 @@ RSpec.describe RoaringBitmap::Bitmap do
       expect(sample_bitset.to_a).to eq(cloned.to_a)
     end
   end
+
+  describe ".or_many" do
+    let(:enabled_bits) do
+      Array.new(500) { (rand * 10_000).to_i }
+    end
+
+    let(:sample_bitsets) do
+      enabled_bits.map do |bit|
+        described_class.new.tap { |bitset| bitset.add(bit) }
+      end
+    end
+
+    subject { described_class.or_many(sample_bitsets) }
+
+    it "returns a bitset" do
+      expect(subject).to be_a(described_class)
+    end
+
+    it "includes all expected bits" do
+      expect(subject.to_a).to match_array(enabled_bits.uniq)
+    end
+  end
+
+  # In these tests create a large set of bitsets filled with random numbers.
+  # Across all of the 500 bitsets, always enable the bits from the
+  # `always_enabled` array so that they will appear in the intersection result.
+  describe ".and_many" do
+    let(:always_enabled) do
+      Array.new(3) { (rand * 10_000).to_i }
+    end
+
+    let(:other_bits) do
+      Array.new(500) { (rand * 10_000).to_i }
+    end
+
+    let(:sample_bitsets) do
+      other_bits.map do |other_bit|
+        described_class.new.tap do |bitset|
+          bitset.add(other_bit)
+          always_enabled.each { |bit| bitset.add(bit) }
+        end
+      end
+    end
+
+    subject { described_class.and_many(sample_bitsets) }
+
+    it "returns a bitset" do
+      expect(subject).to be_a(described_class)
+    end
+
+    it "includes all expected bits" do
+      expect(subject.to_a).to match_array(always_enabled.uniq)
+    end
+  end
 end

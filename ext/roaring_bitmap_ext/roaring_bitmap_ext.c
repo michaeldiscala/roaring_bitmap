@@ -88,7 +88,6 @@ VALUE bitmap_m_each(VALUE self) {
   }
   roaring_free_uint32_iterator(i);
 
-
   return Qnil;
 }
 
@@ -100,6 +99,63 @@ VALUE bitmap_m_contains(VALUE self, VALUE index) {
     return Qtrue;
   } else {
     return Qfalse;
+  }
+}
+
+VALUE bitmap_m_or_many(VALUE self, VALUE wrapped_bitmap_array) {
+  Check_Type(wrapped_bitmap_array, T_ARRAY);
+
+  long n_bitmaps = RARRAY_LEN(wrapped_bitmap_array);
+  roaring_bitmap_t* unwrapped_bitmap_array[n_bitmaps];
+
+  // Extract the bitmap pointers from the VALUE objects
+  for (int i = 0; i < n_bitmaps; i++) {
+    TypedData_Get_Struct(
+      RARRAY_PTR(wrapped_bitmap_array)[i],
+      roaring_bitmap_t,
+      &bitmap_type,
+      unwrapped_bitmap_array[i]
+    );
+  }
+
+  roaring_bitmap_t *unioned = roaring_bitmap_or_many(
+    n_bitmaps,
+    (const roaring_bitmap_t**)unwrapped_bitmap_array
+  );
+
+  return TypedData_Wrap_Struct(self, &bitmap_type, unioned);
+}
+
+// TODO:: handle the case where 0 or 1 bitsets are passed in
+// TODO:: make sure that the intersection code isn't leaking copies
+VALUE bitmap_m_and_many(VALUE self, VALUE wrapped_bitmap_array) {
+  Check_Type(wrapped_bitmap_array, T_ARRAY);
+
+  long n_bitmaps = RARRAY_LEN(wrapped_bitmap_array);
+  roaring_bitmap_t* unwrapped_bitmap_array[n_bitmaps];
+
+  // Extract the bitmap pointers from the VALUE objects
+  for (int i = 0; i < n_bitmaps; i++) {
+    TypedData_Get_Struct(
+      RARRAY_PTR(wrapped_bitmap_array)[i],
+      roaring_bitmap_t,
+      &bitmap_type,
+      unwrapped_bitmap_array[i]
+    );
+  }
+
+  if (n_bitmaps < 2)  {
+    return Qnil;
+  } else {
+    roaring_bitmap_t *intersection = roaring_bitmap_copy(unwrapped_bitmap_array[0]);
+    for (int i = 1; i < n_bitmaps; i++) {
+      roaring_bitmap_and_inplace(
+          intersection,
+          unwrapped_bitmap_array[1]
+      );
+    }
+
+    return TypedData_Wrap_Struct(self, &bitmap_type, intersection);
   }
 }
 
@@ -118,6 +174,8 @@ void Init_roaring_bitmap_ext() {
   rb_define_method(cBitmap, "each", bitmap_m_each, 0);
   rb_define_method(cBitmap, "contains?", bitmap_m_contains, 1);
   rb_define_singleton_method(cBitmap, "deserialize", bitmap_m_deserialize, 1);
+  rb_define_singleton_method(cBitmap, "or_many", bitmap_m_or_many, 1);
+  rb_define_singleton_method(cBitmap, "and_many", bitmap_m_and_many, 1);
 
   return;
 }
