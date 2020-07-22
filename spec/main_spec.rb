@@ -1,5 +1,8 @@
 require "roaring_bitmap_ext"
 
+
+# TODO:: in most of the tests for combining bitsets there should be assertions
+# that the original bitsets are not modified at all.
 RSpec.describe RoaringBitmap::Bitmap do
   let(:sample_values) { [5, 500, 33, 17, 313] }
   let(:sample_bitset) do
@@ -53,6 +56,21 @@ RSpec.describe RoaringBitmap::Bitmap do
 
     it "contains the same values" do
       expect(sample_bitset.to_a).to eq(cloned.to_a)
+    end
+  end
+
+  describe "#or" do
+    let(:other_sample_values) { [6, 501, 34, 187, 313] }
+    let(:other_sample_bitset) do
+      bitset = described_class.new
+      other_sample_values.each { |value| bitset.add(value) }
+      bitset
+    end
+
+    subject { other_sample_bitset.or(sample_bitset) }
+
+    it "returns a bitset containing all bits from the inputs" do
+      expect(subject.to_a).to match_array(other_sample_values | sample_values)
     end
   end
 

@@ -126,6 +126,21 @@ VALUE bitmap_m_or_many(VALUE self, VALUE wrapped_bitmap_array) {
   return TypedData_Wrap_Struct(self, &bitmap_type, unioned);
 }
 
+VALUE bitmap_m_or(VALUE self, VALUE other) {
+  roaring_bitmap_t *unwrapped_self;
+  TypedData_Get_Struct(self, roaring_bitmap_t, &bitmap_type, unwrapped_self);
+
+  roaring_bitmap_t *unwrapped_other;
+  TypedData_Get_Struct(other, roaring_bitmap_t, &bitmap_type, unwrapped_other);
+
+  roaring_bitmap_t *result = roaring_bitmap_or(unwrapped_self, unwrapped_other);
+
+  VALUE mRoaringBitmap = rb_define_module("RoaringBitmap");
+  VALUE cBitmap = rb_define_class_under(mRoaringBitmap, "Bitmap", rb_cData);
+
+  return TypedData_Wrap_Struct(cBitmap, &bitmap_type, result);
+}
+
 // TODO:: handle the case where 0 or 1 bitsets are passed in
 // TODO:: make sure that the intersection code isn't leaking copies
 VALUE bitmap_m_and_many(VALUE self, VALUE wrapped_bitmap_array) {
@@ -173,6 +188,7 @@ void Init_roaring_bitmap_ext() {
   rb_define_method(cBitmap, "cardinality", bitmap_m_cardinality, 0);
   rb_define_method(cBitmap, "each", bitmap_m_each, 0);
   rb_define_method(cBitmap, "contains?", bitmap_m_contains, 1);
+  rb_define_method(cBitmap, "or", bitmap_m_or, 1);
   rb_define_singleton_method(cBitmap, "deserialize", bitmap_m_deserialize, 1);
   rb_define_singleton_method(cBitmap, "or_many", bitmap_m_or_many, 1);
   rb_define_singleton_method(cBitmap, "and_many", bitmap_m_and_many, 1);
