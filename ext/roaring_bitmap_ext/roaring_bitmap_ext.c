@@ -6,12 +6,20 @@ void bitmap_free(void* data) {
   roaring_bitmap_free((roaring_bitmap_t*)data);
 }
 
+// This is not really a good estimate of the bytes used in memory for this,
+// but I'm testing to see if this impacts how GC handles these objects (in
+// some of my benchmarks I am noticing that we use a lot of memory and
+// I'm wondering if it's because I'm hiding their actual size from the ruby VM)
+size_t bitmap_size(const void* data) {
+  return roaring_bitmap_portable_size_in_bytes((roaring_bitmap_t*)data);
+}
+
 static const rb_data_type_t bitmap_type = {
   .wrap_struct_name = "bitmap",
   .function = {
     .dmark = NULL,
     .dfree = bitmap_free,
-    .dsize = NULL
+    .dsize = bitmap_size
   },
   .data = NULL,
   .flags = RUBY_TYPED_FREE_IMMEDIATELY
