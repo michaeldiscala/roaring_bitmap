@@ -2,6 +2,8 @@
 #include <roaring.h>
 #include "extconf.h"
 
+VALUE cBitmap;
+
 void bitmap_free(void* data) {
   roaring_bitmap_free((roaring_bitmap_t*)data);
 }
@@ -143,9 +145,6 @@ VALUE bitmap_m_or(VALUE self, VALUE other) {
 
   roaring_bitmap_t *result = roaring_bitmap_or(unwrapped_self, unwrapped_other);
 
-  VALUE mRoaringBitmap = rb_define_module("RoaringBitmap");
-  VALUE cBitmap = rb_define_class_under(mRoaringBitmap, "Bitmap", rb_cData);
-
   return TypedData_Wrap_Struct(cBitmap, &bitmap_type, result);
 }
 
@@ -188,7 +187,7 @@ void Init_roaring_bitmap_ext() {
   mRoaringBitmap = rb_define_module("RoaringBitmap");
 
   // Create the RoaringBitmap::Bitmap class and add methods to it
-  VALUE cBitmap = rb_define_class_under(mRoaringBitmap, "Bitmap", rb_cData);
+  cBitmap = rb_define_class_under(mRoaringBitmap, "Bitmap", rb_cData);
 	rb_define_alloc_func(cBitmap, bitmap_alloc);
 	rb_define_method(cBitmap, "initialize", bitmap_m_initialize, 0);
   rb_define_method(cBitmap, "add", bitmap_m_add, 1);
