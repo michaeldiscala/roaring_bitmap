@@ -74,6 +74,22 @@ RSpec.describe RoaringBitmap::Bitmap do
     end
   end
 
+  describe "#and" do
+    let(:other_sample_values) { [6, 501, 34, 187, 313] }
+    let(:other_sample_bitset) do
+      bitset = described_class.new
+      other_sample_values.each { |value| bitset.add(value) }
+      bitset
+    end
+
+    subject { other_sample_bitset.and(sample_bitset) }
+
+    it "returns a bitset containing all bits from the inputs" do
+      expect(subject.to_a).to match_array(other_sample_values & sample_values)
+    end
+  end
+
+
   describe ".or_many" do
     let(:enabled_bits) do
       Array.new(500) { (rand * 10_000).to_i }
